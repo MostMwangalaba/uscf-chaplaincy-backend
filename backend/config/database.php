@@ -31,7 +31,7 @@ return [
             'prefix_indexes' => true,
             'strict' => true,
             'engine' => null,
-            'options' => extension_loaded('pdo_mysql') ? [
+            'options' => extension_loaded('pdo_mysql') && defined('PDO::MYSQL_ATTR_USE_BUFFERED_QUERY') ? [
                 PDO::MYSQL_ATTR_USE_BUFFERED_QUERY => true,
             ] : [],
         ],

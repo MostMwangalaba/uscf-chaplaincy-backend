@@ -15,10 +15,6 @@ RUN apt-get update && apt-get install -y \
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Set environment variables for build
-ENV APP_ENV=production
-ENV DB_CONNECTION=pgsql
-
 # Set working directory to the project root
 WORKDIR /app
 
@@ -28,7 +24,7 @@ COPY . .
 # Move into backend
 WORKDIR /app/backend
 
-# Disable security advisories and install dependencies
+# Disable security advisories and install dependencies (skip platform reqs)
 RUN composer config --global policy.advisories.block false && \
     composer install --no-dev --optimize-autoloader --ignore-platform-req=ext-*
 
@@ -38,11 +34,8 @@ RUN php artisan config:cache && \
     php artisan view:cache && \
     php artisan storage:link
 
-# Run migrations (ignore errors, will be run later)
-RUN php artisan migrate --force || true
-
 # Expose port 10000
 EXPOSE 10000
 
-# Start Laravel server
-CMD php artisan serve --host=0.0.0.0 --port=10000
+# Start Laravel server – migrations will be run after startup
+CMD php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=10000
