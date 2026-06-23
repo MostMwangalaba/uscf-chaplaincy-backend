@@ -15,11 +15,14 @@ RUN apt-get update && apt-get install -y \
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Set working directory to the backend folder
-WORKDIR /app/backend
+# Set working directory to the project root
+WORKDIR /app
 
-# Copy only the backend directory content
-COPY backend/ .
+# Copy everything (including backend and frontend)
+COPY . .
+
+# Move into the backend directory
+WORKDIR /app/backend
 
 # Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader
@@ -30,7 +33,7 @@ RUN php artisan config:cache && \
     php artisan view:cache && \
     php artisan storage:link
 
-# Run migrations (fresh database on Render)
+# Run migrations (ignore errors, will be run later)
 RUN php artisan migrate --force || true
 
 # Expose port 10000
