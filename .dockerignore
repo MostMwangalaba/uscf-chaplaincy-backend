@@ -1,0 +1,15 @@
+node_modules
+frontend/
+backup/
+.git
+.gitignore
+README.md
+.vscode
+.DS_Store
+*.log
+.env
+*.sqlite
+tests/
+storage/app/public/temp/
+*.zip
+*.tar
