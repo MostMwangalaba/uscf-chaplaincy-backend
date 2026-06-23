@@ -15,16 +15,20 @@ RUN apt-get update && apt-get install -y \
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
+# Set environment variables for build
+ENV APP_ENV=production
+ENV DB_CONNECTION=pgsql
+
 # Set working directory to the project root
 WORKDIR /app
 
-# Copy everything (including backend and frontend)
+# Copy everything
 COPY . .
 
-# Move into the backend directory
+# Move into backend
 WORKDIR /app/backend
 
-# Disable security advisory checks and install dependencies
+# Disable security advisories and install dependencies
 RUN composer config --global policy.advisories.block false && \
     composer install --no-dev --optimize-autoloader --ignore-platform-req=ext-*
 
