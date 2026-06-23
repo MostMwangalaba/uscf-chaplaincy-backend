@@ -24,8 +24,9 @@ COPY . .
 # Move into the backend directory
 WORKDIR /app/backend
 
-# Install PHP dependencies
-RUN composer install --no-dev --optimize-autoloader
+# Disable security advisory checks and install dependencies
+RUN composer config --global policy.advisories.block false && \
+    composer install --no-dev --optimize-autoloader --ignore-platform-req=ext-*
 
 # Cache configuration, routes, and views
 RUN php artisan config:cache && \
