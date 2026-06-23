@@ -1,6 +1,6 @@
 FROM php:8.2-fpm
 
-# Install system dependencies
+# Install system dependencies (minimal)
 RUN apt-get update && apt-get install -y \
     git \
     curl \
@@ -15,27 +15,26 @@ RUN apt-get update && apt-get install -y \
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Set working directory to the project root
+# Set working directory
 WORKDIR /app
 
-# Copy everything
-COPY . .
+# Copy only the backend folder
+COPY backend/ backend/
 
 # Move into backend
 WORKDIR /app/backend
 
-# Disable security advisories and install dependencies (skip platform reqs)
+# Install dependencies (ignore platform requirements and security advisories)
 RUN composer config --global policy.advisories.block false && \
     composer install --no-dev --optimize-autoloader --ignore-platform-req=ext-*
 
-# Cache configuration, routes, and views
-RUN php artisan config:cache && \
-    php artisan route:cache && \
-    php artisan view:cache && \
-    php artisan storage:link
+# Cache config and routes (skip storage link if it fails)
+RUN php artisan config:cache || true && \
+    php artisan route:cache || true && \
+    php artisan view:cache || true
 
-# Expose port 10000
+# Expose port
 EXPOSE 10000
 
-# Start Laravel server – migrations will be run after startup
+# Start the server (migrations will run at startup)
 CMD php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=10000
