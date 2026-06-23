@@ -31,7 +31,7 @@ RUN php artisan config:cache && \
     php artisan storage:link
 
 # Run migrations (fresh database on Render)
-RUN php artisan migrate --force
+RUN php artisan migrate --force || true
 
 # Expose port 10000
 EXPOSE 10000
