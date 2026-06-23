@@ -1,16 +1,16 @@
 FROM php:8.2-fpm
 
-# Install dependencies and PostgreSQL client
+# Install system dependencies and extensions
 RUN apt-get update && apt-get install -y \
     git curl libpng-dev libonig-dev libxml2-dev zip unzip libpq-dev \
-    && docker-php-ext-install pdo pdo_pgsql pgsql mbstring exif pcntl bcmath gd
+    && docker-php-ext-install pdo pdo_pgsql mbstring exif pcntl bcmath gd
 
 # Create ini files to enable extensions
 RUN echo "extension=pdo_pgsql.so" > /usr/local/etc/php/conf.d/pdo_pgsql.ini \
     && echo "extension=pgsql.so" > /usr/local/etc/php/conf.d/pgsql.ini
 
-# Verify extensions are enabled (will fail build if not)
-RUN php -m | grep -E 'pdo_pgsql|pgsql' || (echo "Extensions not found" && exit 1)
+# Verify extension
+RUN php -m | grep pdo_pgsql || (echo "Extension not found" && exit 1)
 
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
@@ -30,10 +30,10 @@ ENV COMPOSER_PROCESS_TIMEOUT=2000
 # Disable security advisories
 RUN composer config --global policy.advisories.block false
 
-# Install dependencies (ignore platform requirements)
+# Install dependencies
 RUN composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction --ignore-platform-reqs
 
-# Cache Laravel config, routes, views
+# Cache Laravel config (skip if fails)
 RUN php artisan config:cache || true
 RUN php artisan route:cache || true
 RUN php artisan view:cache || true
@@ -42,5 +42,5 @@ RUN php artisan storage:link || true
 # Expose port
 EXPOSE 10000
 
-# Start server
-CMD php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=10000
+# Start server WITHOUT running migrations (they will be done manually)
+CMD php artisan serve --host=0.0.0.0 --port=10000
