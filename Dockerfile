@@ -11,6 +11,7 @@ WORKDIR /app
 COPY backend/ /app/
 
 ENV APP_ENV=production
+ENV COMPOSER_MEMORY_LIMIT=-1
 
 RUN composer install --no-dev --optimize-autoloader --ignore-platform-req=ext-* --no-interaction
 
