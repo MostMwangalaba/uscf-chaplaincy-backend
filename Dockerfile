@@ -15,11 +15,11 @@ RUN apt-get update && apt-get install -y \
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Set working directory
-WORKDIR /app
+# Set working directory to the backend folder
+WORKDIR /app/backend
 
-# Copy application files
-COPY . .
+# Copy only the backend directory content
+COPY backend/ .
 
 # Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader
@@ -30,10 +30,10 @@ RUN php artisan config:cache && \
     php artisan view:cache && \
     php artisan storage:link
 
-# Run migrations (the database will be fresh on Render)
+# Run migrations (fresh database on Render)
 RUN php artisan migrate --force
 
-# Expose port 10000 (Render default)
+# Expose port 10000
 EXPOSE 10000
 
 # Start Laravel server
