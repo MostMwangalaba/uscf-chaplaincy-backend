@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Schema;
 
 class BackupController extends Controller
 {
@@ -26,10 +26,7 @@ class BackupController extends Controller
                 'created_at' => Storage::disk('local')->lastModified($file),
             ];
         }
-        usort($backups, function ($a, $b) {
-            return $b['created_at'] - $a['created_at'];
-        });
-
+        usort($backups, fn($a, $b) => $b['created_at'] - $a['created_at']);
         return response()->json($backups);
     }
 
@@ -43,15 +40,13 @@ class BackupController extends Controller
             Storage::disk('local')->makeDirectory('backups');
         }
 
-        $tables = DB::select('SHOW TABLES');
-        $dbName = env('DB_DATABASE');
-        $tableKey = "Tables_in_{$dbName}";
+        // Get all table names
+        $tables = Schema::getTableListing();
         $data = [];
 
         foreach ($tables as $table) {
-            $tableName = $table->$tableKey;
-            $rows = DB::table($tableName)->get();
-            $data[$tableName] = $rows;
+            $rows = DB::table($table)->get();
+            $data[$table] = $rows;
         }
 
         $filename = 'backup_' . now()->format('Y-m-d_H-i-s') . '.json';
@@ -77,10 +72,7 @@ class BackupController extends Controller
         $content = Storage::disk('local')->get($path);
         return response($content, 200)
             ->header('Content-Type', 'application/json')
-            ->header('Content-Disposition', "attachment; filename=\"{$id}\"")
-            ->header('Cache-Control', 'public, must-revalidate, max-age=0')
-            ->header('Pragma', 'public')
-            ->header('Expires', 'Sat, 01 Jan 2000 00:00:00 GMT');
+            ->header('Content-Disposition', "attachment; filename={$id}");
     }
 
     public function destroy(Request $request, $id)

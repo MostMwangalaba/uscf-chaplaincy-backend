@@ -13,13 +13,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        // Configure the 'auth' middleware to not redirect for API
-        $middleware->redirectGuestsTo(function (Request $request) {
-            if ($request->is('api/*')) {
-                return null; // no redirect, just return 401
-            }
-            return '/login';
-        });
+        $middleware->api(prepend: [
+            \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         $exceptions->shouldRenderJsonWhen(
